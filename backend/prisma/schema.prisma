@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          UserRole  @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relações
+  ownedQuizzes  Quiz[]    @relation("QuizOwner")
+  participations GameSession[] @relation("Participants")
+  scores        Score[]
+}
+
+enum UserRole {
+  TEACHER
+  STUDENT
+}
+
+model Quiz {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  isPublic    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relações
+  owner       User      @relation("QuizOwner", fields: [ownerId], references: [id])
+  ownerId     String
+  questions   Question[]
+  sessions    GameSession[]
+}
+
+model Question {
+  id          String    @id @default(uuid())
+  quizId      String
+  content     String
+  type        QuestionType
+  timeLimit   Int       @default(30) // em segundos
+  points      Int       @default(1000)
+  order       Int
+  
+  // Relações
+  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  options     Option[]
+  answers     Answer[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+model Option {
+  id          String    @id @default(uuid())
+  questionId  String
+  content     String
+  isCorrect   Boolean
+  
+  // Relações
+  question    Question  @relation(fields: [questionId], references: [id])
+}
+
+model GameSession {
+  id          String    @id @default(uuid())
+  quizId      String
+  code        String    @unique // código para alunos entrarem
+  status      SessionStatus @default(WAITING)
+  startedAt   DateTime?
+  endedAt     DateTime?
+  
+  // Relações
+  quiz        Quiz      @relation(fields: [quizId], references: [id])
+  participants User[]   @relation("Participants")
+  answers     Answer[]
+  scores      Score[]
+}
+
+enum SessionStatus {
+  WAITING
+  ACTIVE
+  FINISHED
+}
+
+model Answer {
+  id            String    @id @default(uuid())
+  sessionId     String
+  questionId    String
+  userId        String
+  selectedOption String?
+  answeredAt    DateTime  @default(now())
+  
+  // Relações
+  session       GameSession @relation(fields: [sessionId], references: [id])
+  question      Question    @relation(fields: [questionId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+}
+
+model Score {
+  id          String    @id @default(uuid())
+  sessionId   String
+  userId      String
+  points      Int
+  
+  // Relações
+  session     GameSession @relation(fields: [sessionId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+} 

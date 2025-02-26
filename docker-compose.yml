@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: quiz_db
+    environment:
+      POSTGRES_USER: quizapp
+      POSTGRES_PASSWORD: sua_senha_segura
+      POSTGRES_DB: quizapp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data: 
