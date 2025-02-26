@@ -6,7 +6,7 @@ services:
     container_name: quiz_db
     environment:
       POSTGRES_USER: quizapp
-      POSTGRES_PASSWORD: sua_senha_segura
+      POSTGRES_PASSWORD: quizapp123core
       POSTGRES_DB: quizapp_db
     ports:
       - "5432:5432"
